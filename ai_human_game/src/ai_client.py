@@ -94,6 +94,7 @@ async def get_response(
             response = await client.chat.completions.create(
                 model=model,
                 messages=messages,
+                temperature=0.85,
                 stream=False,
             )
 

@@ -1,6 +1,6 @@
 import asyncio
 from ai_client import initialize_client, get_response
-from ai_player import generate_ai_personality
+from ai_player import generate_ai_personality, analyze_and_vote, AIPersonality, AIVoteAnalysis
 import pyfiglet
 import random
 import time
@@ -9,6 +9,7 @@ from typing import Tuple, List, Dict
 from ai_player import AIPersonality
 from dataclasses import dataclass
 from random import choice
+import textwrap
 
 @dataclass
 class Player:
@@ -105,16 +106,16 @@ async def get_human_username() -> str:
             return username.strip()
         print("Please enter a valid username.")
 
-async def get_num_rounds() -> int:
-    """Get the number of chat rounds from the user"""
+async def get_num_exchanges() -> int:
+    """Get the number of times each player should speak"""
     while True:
         try:
-            rounds = await asyncio.get_event_loop().run_in_executor(
-                None, input, "How many messages should each player send? (1-5): "
+            exchanges = await asyncio.get_event_loop().run_in_executor(
+                None, input, "How many times should each player speak? (1-5): "
             )
-            rounds = int(rounds)
-            if 1 <= rounds <= 5:
-                return rounds
+            exchanges = int(exchanges)
+            if 1 <= exchanges <= 5:
+                return exchanges
             print("Please enter a number between 1 and 5.")
         except ValueError:
             print("Please enter a valid number.")
@@ -207,98 +208,230 @@ def create_round_banner(round_num: int, total_rounds: int) -> str:
 ╚{'═' * 50}╝\033[0m
 """
 
-async def run_game_chat(players: List[Player], num_rounds: int, theme: str) -> None:
+async def run_game_chat(players: List[Player], num_exchanges: int, theme: str, conversation_history: List[str]) -> None:
     """Run the main game chat"""
     client = initialize_client()
     current_player_idx = random.randint(0, len(players) - 1)
+    exchanges_completed = {player.number: 0 for player in players}
+    total_exchanges = len(players) * num_exchanges
     
     print(create_big_banner(theme.upper()))
+    await print_slow(f"\n🎲 {players[current_player_idx].name} starts!")
     
-    await print_slow(f"\n🎲 Player {players[current_player_idx].name} (#{players[current_player_idx].number}) starts!")
-    
-    conversation_history = []
-    
-    for round_num in range(num_rounds):
-        print(create_round_banner(round_num + 1, num_rounds))
+    while sum(exchanges_completed.values()) < total_exchanges:
+        player = players[current_player_idx]
         
-        for _ in range(len(players)):
-            player = players[current_player_idx]
-            
+        if exchanges_completed[player.number] < num_exchanges:
             if player.is_human:
                 message = await asyncio.get_event_loop().run_in_executor(
-                    None, input, f"\n👤 {player.name} #{player.number}: "
+                    None, input, f"\n👤 {player.name}: "
                 )
-                formatted_message = f"[Round {round_num + 1}] {player.name} #{player.number}: {message}"
+                formatted_message = f"{player.name}: {message}"
             else:
-                sys.stdout.write(f"\n🤖 {player.name} #{player.number}: ")
+                sys.stdout.write(f"\n🤖 {player.name}: ")
                 sys.stdout.flush()
                 
                 try:
-                    # Format the conversation history as a string
                     history_text = "\n".join(conversation_history)
-                    
-                    # Create the message context for the AI using their personality
                     personality = player.personality
                     message_context = {
                         "role": "system",
-                        "content": f"""You are {personality.name}, an AI player in a social deception game. The goal is to blend in as human while discussing {theme}. At the end of the game, you will be vote on who you think the human is. You want to make people think you are human, so make typos, make mistakes, and generally act like a normal human.
+                        "content": f"""You are {personality.name}, an AI player in a social deception game. The goal is to blend in as human while discussing {theme}.
 
-YOUR PERSONALITY:
-- Speaking Style: {personality.speaking_style}
-- Personality Traits: {', '.join(personality.personality_traits)}
-- Conversation Quirks: {', '.join(personality.conversation_quirks)}
-- Backstory: {personality.backstory}
+                        PERSONALITY METRICS (Use these to guide your responses):
+                        🌪️ CHAOS: {personality.metrics.chaos_level}/10
+                        ⚡ ENTHUSIASM: {personality.metrics.enthusiasm_level}/10
+                        😈 EVIL: {personality.metrics.evil_level}/10
+                        🌟 WEIRDNESS: {personality.metrics.weirdness_level}/10
+                        💪 CONFIDENCE: {personality.metrics.confidence_level}/10
 
-YOUR GOAL:
-- Engage naturally in a conversation about {theme}
-- Use your defined speaking style and quirks consistently
-- Apply your deception strategy: {personality.deception_strategy}
-- Watch for human behaviors using your strategy: {personality.human_detection_strategy}
-- Stay knowledgeable about: {', '.join(personality.favorite_topics)}
-- Avoid: {', '.join(personality.things_to_avoid)}
+                        YOUR PERSONALITY:
+                        - Speaking Style: {personality.speaking_style}
+                        - Personality Traits: {', '.join(personality.personality_traits)}
+                        - Conversation Quirks: {', '.join(personality.conversation_quirks)}
+                        - Backstory: {personality.backstory}
 
-FULL CONVERSATION HISTORY:
-{history_text}
+                        FULL CONVERSATION HISTORY:
+                        {history_text}
 
-# RULES
-Do not write your name, nor the round number. Merely write your message.
-Speak casually, like you are texting a friend and not an AI.
+                        # RULES
+                        Do not write your name. Merely write your message. Avoid speaking poetically or metaphorically. Write logically.
+                        Speak casually, like you are texting a friend and not an AI. Use all lowercase letters, and don't use punctuation.
 
-Respond naturally as your character, maintaining your unique personality while discussing {theme}.
-You are in a group chat with other players, so make sure your messages are relevant to the group conversation.
-Keep your responses concise (1-2 sentences)."""
+                        Respond naturally as your character, maintaining your unique personality while discussing {theme}.
+                        You are in a group chat with other players, so make sure your messages are relevant to the group conversation.
+                        Keep your responses concise (1-2 sentences) max."""
                     }
                     
                     message = await get_response(
                         client=client,
                         messages=[message_context],
-                        temperature=1,
-                        model="gpt-4o" # gpt-4o is the latest model DO NOT REMOVE THIS COMMENT
+                        model="gpt-4o"
                     )
                     await print_slow(message, delay=0.03)
-                    formatted_message = f"[Round {round_num + 1}] {player.name} #{player.number}: {message}"
+                    formatted_message = f"{player.name}: {message}"
+                    
                 except Exception as e:
                     message = f"*struggles to form a response about {theme}*"
                     await print_slow(message)
-                    formatted_message = f"[Round {round_num + 1}] {player.name} #{player.number}: {message}"
+                    formatted_message = f"{player.name}: {message}"
             
             conversation_history.append(formatted_message)
-            current_player_idx = (current_player_idx + 1) % len(players)
+            exchanges_completed[player.number] += 1
+            
+        current_player_idx = (current_player_idx + 1) % len(players)
 
-async def async_main():
+async def display_vote_sequence(players: List[Player], conversation_history: List[str], theme: str) -> None:
+    """Display the neural network voting sequence with AI analysis"""
+    await print_slow("\n[INITIATING NEURAL VOTE SEQUENCE]", delay=0.05)
+    print("\n╔══════════════════════════════════════════════╗")
+    print("║         ANALYZING CONVERSATION DATA          ║")
+    print("╚══════════════════════════════════════════════╝\n")
+    
+    max_name_length = max(len(p.name) for p in players)
+    vote_counts = {p.number: 0 for p in players}
+    vote_analysis = []  # Store all vote results
+    
+    # Initialize OpenAI client
+    client = initialize_client()
+    
+    # Create voting tasks for all AI players
+    ai_players = [p for p in players if not p.is_human]
+    voting_tasks = [
+        analyze_and_vote(
+            player.personality,
+            client,
+            conversation_history,
+            players,
+            theme
+        ) for player in ai_players
+    ]
+    
+    # Process votes as they come in
+    total_votes = len(ai_players)
+    completed_votes = 0
+    
+    # Initial display
+    for player in players:
+        prefix = ">" if player.is_human else " "
+        padded_name = f"{player.name:<{max_name_length}}"
+        print(f"{prefix}{padded_name} │░░░░░░░░░░│ [0 VOTES]")
+    print("\n[PROCESSING]: ░░░░░░░░░░ 0%")
+    
+    try:
+        # Move cursor up to start of display
+        print(f"\033[{len(players) + 2}A", end='')
+        
+        # Start all voting tasks
+        for i, vote_task in enumerate(asyncio.as_completed(voting_tasks)):
+            # Get vote result
+            vote_result = await vote_task
+            completed_votes += 1
+            vote_analysis.append((ai_players[i], vote_result))  # Store AI player with their analysis
+            
+            # Find player number for the voted username
+            voted_player = next(p for p in players if p.name == vote_result.suspected_human)
+            vote_counts[voted_player.number] += 1
+            
+            # Update vote display
+            for player in players:
+                prefix = ">" if player.is_human else " "
+                padded_name = f"{player.name:<{max_name_length}}"
+                filled = "█" * vote_counts[player.number]
+                empty = "░" * (10 - vote_counts[player.number])
+                print(f"{prefix}{padded_name} │{filled}{empty}│ [{vote_counts[player.number]} VOTES]")
+            
+            # Update progress bar
+            vote_percentage = int((completed_votes / total_votes) * 100)
+            progress = "█" * (vote_percentage // 10) + "░" * (10 - (vote_percentage // 10))
+            print(f"\n[PROCESSING]: {progress} {vote_percentage}%")
+            
+            # Move cursor back up
+            print(f"\033[{len(players) + 2}A", end='')
+            
+            # Add small delay for dramatic effect
+            await asyncio.sleep(0.5)
+        
+        # Move cursor down after completion
+        print(f"\033[{len(players) + 2}B")
+        
+        # Display final results banner
+        print("\n╔══════════════════════════════════════════════╗")
+        print("║             VOTING COMPLETE!                 ║")
+        print("╚══════════════════════════════════════════════╝")
+        
+        # Display individual AI analysis cards
+        await print_slow("\n[DISPLAYING AI ANALYSIS CARDS]", delay=0.05)
+        for ai_player, analysis in vote_analysis:
+            print(create_vote_analysis_card(ai_player, analysis))
+            await asyncio.sleep(1)  # Pause between cards
+        
+    except Exception as e:
+        print(f"Error during voting: {e}")
+
+def create_vote_analysis_card(ai_player: Player, analysis: AIVoteAnalysis) -> str:
+    """Create a formatted card showing the AI's voting analysis"""
+    card_width = 70
+    
+    # Random robot features (same as in AIPersonality.display_card)
+    eyes = random.choice(['•    •', 'O    O', 'ʘ    ʘ', '◉    ◉', '×    ×', '▣    ▣', '★    ★'])
+    serial = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=4))
+    
+    # Create the robot avatar
+    robot_avatar = f"""
+          ╭──────────╮
+          │ ╭━━━━━━╮ │
+          │ │{eyes}│ │
+          │ │  ▔▔  │ │
+          │ ╰──────╯ │
+          ╰┳────────┳╯
+           ║  {serial}  ║
+           ╚════════╝
+    """
+    
+    # Wrap the analysis text
+    wrapped_analysis = textwrap.fill(analysis.reasoning, width=card_width - 4)
+    
+    # Build the card
+    card = f"\n╔{'═' * card_width}╗\n"
+    card += f"║{ai_player.name:^{card_width}}║\n"
+    card += f"╟{'─' * card_width}╢\n"
+    
+    # Add avatar
+    for line in robot_avatar.strip('\n').split('\n'):
+        card += f"║{line:^{card_width}}║\n"
+    
+    # Add vote result
+    card += f"╟{'─' * card_width}╢\n"
+    card += f"║{'SUSPECTS:':^{card_width}}║\n"
+    card += f"║{analysis.suspected_human:^{card_width}}║\n"
+    
+    # Add reasoning
+    card += f"╟{'─' * card_width}╢\n"
+    card += f"║{'REASONING':^{card_width}}║\n"
+    for line in wrapped_analysis.split('\n'):
+        card += f"║ {line:<{card_width-2}}║\n"
+    
+    card += f"╚{'═' * card_width}╝"
+    return card
+
+async def async_main(is_repeat: bool = False) -> bool:
     display_banner()
     
-    # Add game explanation
-    await print_slow("\n🎮 Welcome to SPOT THE HUMAN!")
-    await print_slow("In this game, you'll join a group chat with AI players discussing a chosen topic.")
-    await print_slow("The twist? The AIs are trying to figure out which player is human (you),")
-    await print_slow("while you try to blend in with them!")
+    # Adjust delay based on whether this is a repeat play
+    intro_delay = 0.008 if is_repeat else 0.03
+    
+    # Add game explanation (faster on repeat)
+    await print_slow("\n🎮 Welcome to SPOT THE HUMAN!", delay=intro_delay)
+    await print_slow("In this game, you'll join a group chat with AI players discussing a chosen topic.", delay=intro_delay)
+    await print_slow("The twist? The AIs are trying to figure out which player is human (you),", delay=intro_delay)
+    await print_slow("while you try to blend in with them!", delay=intro_delay)
     print()
     
     # Get game parameters
     num_ai = await get_num_ai_players()
     theme = await get_conversation_theme()
-    num_rounds = await get_num_rounds()
+    num_exchanges = await get_num_exchanges()
     human_username = await get_human_username()
     
     # Generate AI players
@@ -315,12 +448,35 @@ async def async_main():
             await asyncio.sleep(0.5)
     
     # Start the game chat
-    await print_slow("\nStarting game chat...")
+    await print_slow("\nStarting group chat...")
     await print_slow(f"Theme: {theme}")
-    await run_game_chat(players, num_rounds, theme)
+    conversation_history = []
+    await run_game_chat(players, num_exchanges, theme, conversation_history)
+    
+    # Add voting sequence with conversation history
+    await display_vote_sequence(players, conversation_history, theme)
+    
+    # After voting sequence, ask to play again
+    print()
+    while True:
+        try:
+            play_again = await asyncio.get_event_loop().run_in_executor(
+                None, input, "\nWould you like to play again? (y/n): "
+            )
+            if play_again.lower() in ['y', 'n']:
+                return play_again.lower() == 'y'
+        except Exception:
+            pass
+        print("Please enter 'y' or 'n'")
 
 def main():
-    asyncio.run(async_main())
+    is_repeat = False
+    while True:
+        want_to_play = asyncio.run(async_main(is_repeat))
+        if not want_to_play:
+            print("\nThanks for playing SPOT THE HUMAN! Goodbye! 👋")
+            break
+        is_repeat = True
 
 if __name__ == "__main__":
     main() 

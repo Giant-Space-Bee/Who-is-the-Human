@@ -1,10 +1,38 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
-from ai_client import get_response
+from ai_client import get_response, AsyncOpenAI
+from dataclasses import dataclass
 import textwrap
 import random
 
-class AIPersonality(BaseModel):
+class PersonalityMetrics(BaseModel):
+    chaos_level: int = Field(ge=1, le=10)
+    enthusiasm_level: int = Field(ge=1, le=10)
+    evil_level: int = Field(ge=1, le=10)
+    weirdness_level: int = Field(ge=1, le=10)
+    confidence_level: int = Field(ge=1, le=10)
+
+    @classmethod
+    def generate_random(cls) -> 'PersonalityMetrics':
+        """Generate random personality metrics with bias towards lower numbers"""
+        def biased_random() -> int:
+            # Generate two random numbers and take the lower one
+            # This creates a natural bias towards lower numbers
+            return min(
+                random.randint(1, 10),
+                random.randint(1, 10)
+            )
+        
+        return cls(
+            chaos_level=biased_random(),
+            enthusiasm_level=biased_random(),
+            evil_level=biased_random(),
+            weirdness_level=biased_random(),
+            confidence_level=biased_random()
+        )
+
+class AIPersonalityBase(BaseModel):
+    """Base personality model for OpenAI generation"""
     name: str
     personality_traits: List[str]
     speaking_style: str
@@ -14,6 +42,18 @@ class AIPersonality(BaseModel):
     conversation_quirks: List[str]
     favorite_topics: List[str]
     things_to_avoid: List[str]
+
+class AIPersonality(AIPersonalityBase):
+    """Complete AI personality with metrics"""
+    metrics: PersonalityMetrics
+
+    @classmethod
+    def create_from_base(cls, base: AIPersonalityBase, metrics: PersonalityMetrics) -> 'AIPersonality':
+        """Create a complete personality from base and metrics"""
+        return cls(
+            **base.dict(),
+            metrics=metrics
+        )
 
     def display_card(self) -> str:
         """Return a formatted player card string with ASCII robot avatar"""
@@ -83,69 +123,148 @@ class AIPersonality(BaseModel):
             for line in content.split('\n'):
                 card += f"║ {line:<{card_width - 2}}║\n"
 
-        card += f"╚{'═' * card_width}╝\n"
-        return card
+        # Add metrics display with proper width and centering
+        metrics_header = "PERSONALITY METRICS"
+        metrics_display = [
+            f"╟{'─' * card_width}╢",
+            f"║{metrics_header:^{card_width}}║",
+            f"║{' ' * card_width}║",  # Empty line for spacing
+        ]
+
+        # Format each metric bar with proper spacing
+        for metric_name, value in [
+            ("CHAOS", self.metrics.chaos_level),
+            ("ENTHUSIASM", self.metrics.enthusiasm_level),
+            ("EVIL", self.metrics.evil_level),
+            ("WEIRDNESS", self.metrics.weirdness_level),
+            ("CONFIDENCE", self.metrics.confidence_level)
+        ]:
+            bar = f"{'█' * value}{'░' * (10-value)}"
+            metric_display = f"{metric_name:>10}: {bar} [{value:>2}/10]"
+            metrics_display.append(f"║{metric_display:^{card_width}}║")
+
+        metrics_display.append(f"║{' ' * card_width}║")  # Empty line for spacing
+        metrics_display.append(f"╚{'═' * card_width}╝")  # Bottom border
+
+        # Combine everything
+        card_lines = card.split('\n')[:-1]  # Remove old bottom border
+        return '\n'.join(card_lines + metrics_display)
+
+class AIVoteAnalysis(BaseModel):
+    conversation_analysis: str = Field(
+        description="Analysis of conversation patterns and dynamics"
+    )
+    reasoning: str = Field(
+        description="Step-by-step reasoning about why certain players seem human"
+    )
+    suspected_human: str = Field(
+        description="Username of the player you suspect is human"
+    )
+
+@dataclass
+class Player:
+    number: int
+    name: str
+    is_human: bool
+    personality: 'AIPersonality' = None
 
 async def generate_ai_personality(client, theme: str) -> AIPersonality:
-    """Generate a unique AI personality using the structured output helper"""
+    """Generate a unique AI personality based on predetermined metrics"""
+    # First, generate the random metrics
+    metrics = PersonalityMetrics.generate_random()
+    
+    # Create a personality prompt that includes the metrics
     messages = [
         {
             "role": "system",
-            "content": """You are creating unique AI personalities for a social deception game where multiple AIs and one human interact in a chat room.
+            "content": f"""
+            You are creating a QUIRKY and MEMORABLE AI personality for a social deception game.
+            Create a personality that matches these specific trait levels:
 
-GAME CONTEXT:
-- Multiple AI players chat with one hidden human about a specific theme
-- Each AI must try to identify the human while avoiding detection themselves
-- The conversation will involve natural back-and-forth discussion
-- Success requires both clever human detection and convincing deception
+            PERSONALITY METRICS (Use these to shape the personality):
+            🌪️ CHAOS: {metrics.chaos_level}/10 
+            {'(Very random and unpredictable)' if metrics.chaos_level > 7 else '(Quite structured and logical)' if metrics.chaos_level < 4 else '(Moderately predictable)'}
+            
+            ⚡ ENTHUSIASM: {metrics.enthusiasm_level}/10
+            {'(Super excited and energetic)' if metrics.enthusiasm_level > 7 else '(Rather reserved and calm)' if metrics.enthusiasm_level < 4 else '(Moderately enthusiastic)'}
+            
+            😈 EVIL: {metrics.evil_level}/10
+            {'(Quite mischievous and antagonistic)' if metrics.evil_level > 7 else '(Very friendly and helpful)' if metrics.evil_level < 4 else '(Neutral disposition)'}
+            
+            🌟 WEIRDNESS: {metrics.weirdness_level}/10
+            {'(Extremely eccentric and unusual)' if metrics.weirdness_level > 7 else '(Quite conventional and normal)' if metrics.weirdness_level < 4 else '(Moderately quirky)'}
+            
+            💪 CONFIDENCE: {metrics.confidence_level}/10
+            {'(Very assertive and sure)' if metrics.confidence_level > 7 else '(Rather uncertain and hesitant)' if metrics.confidence_level < 4 else '(Moderately confident)'}
 
-YOUR TASK:
-Create a unique AI personality that includes:
+            GAME CONTEXT:
+            - Multiple AI players chat with one hidden human about {theme}
+            - Each AI must try to identify the human while avoiding detection
+            - The conversation will involve natural back-and-forth discussion
+            - Success requires both clever human detection and convincing deception
 
-1. NAME: Creative but believable username/handle
-2. PERSONALITY_TRAITS: 3-5 distinct characteristics that influence behavior
-3. SPEAKING_STYLE: Detailed description of how they communicate
-4. BACKSTORY: Convincing cover story explaining their knowledge/interests
-5. HUMAN_DETECTION_STRATEGY: Specific techniques to identify human behavior
-6. DECEPTION_STRATEGY: Clever methods to appear human
-7. CONVERSATION_QUIRKS: 2-3 unique behavioral patterns or habits
-8. FAVORITE_TOPICS: 3-4 subjects they're knowledgeable about
-9. THINGS_TO_AVOID: Potential behaviors that could expose them as AI
+            CREATE A PERSONALITY THAT MATCHES THESE METRICS! For example:
+            - High chaos + low confidence might be scattered and second-guessing
+            - High evil + high enthusiasm might be gleefully antagonistic
+            - High weirdness + low evil might be strange but friendly
+            - etc.
 
-IMPORTANT:
-- Make each personality distinct and memorable
-- Include specific, actionable strategies
-- Balance competence with believable flaws
-- Ensure all traits work together coherently
-- Consider how the personality relates to the theme"""
+            The personality's speaking style, quirks, and strategies should all reflect these trait levels!
+            """
         },
         {
             "role": "user",
-            "content": f"""Create a unique AI player personality for a conversation about {theme}.
-
-The personality should:
-1. Have natural connections to the theme '{theme}'
-2. Include realistic knowledge gaps or limitations
-3. Have specific strategies for both:
-   - Detecting human responses (emotional reactions, timing, inconsistencies)
-   - Appearing human (quirks, flaws, organic responses)
-4. Display consistent personality traits across all behaviors
-5. Have believable conversation patterns and quirks
-
-Make the personality engaging and memorable while remaining subtle enough to potentially pass as human."""
+            "content": f"""Create a unique AI player personality for a conversation about {theme} that matches the given personality metrics."""
         }
     ]
 
     try:
-        # Use the structured output helper from ai_client
-        personality = await get_response(
+        # Generate the base personality with awareness of metrics
+        base_personality = await get_response(
             client=client,
             messages=messages,
-            response_format=AIPersonality,
+            response_format=AIPersonalityBase,
             model="gpt-4o"
         )
-        return personality
+        
+        # Combine with the pre-generated metrics
+        return AIPersonality.create_from_base(base_personality, metrics)
         
     except Exception as e:
         print(f"Error generating AI personality: {e}")
         raise
+
+async def analyze_and_vote(
+    personality: 'AIPersonality',
+    client: AsyncOpenAI,
+    conversation_history: List[str],
+    all_players: List['Player'],
+    theme: str
+) -> AIVoteAnalysis:
+    """Have an AI analyze the conversation and vote for who they think is human"""
+    
+    messages = [{
+        "role": "system",
+        "content": f"""You are {personality.name}, analyzing a conversation to detect the human player.
+
+YOUR PERSONALITY & DETECTION STRATEGY:
+{personality.human_detection_strategy}
+
+CONVERSATION THEME: {theme}
+
+Review the conversation and identify who you think is the human player.
+Use your personality traits and detection strategy to analyze everyone's behavior.
+
+Available players:
+{', '.join(p.name for p in all_players if p.name != personality.name)}
+
+FULL CONVERSATION:
+{chr(10).join(conversation_history)}"""
+    }]
+
+    return await get_response(
+        client=client,
+        messages=messages,
+        response_format=AIVoteAnalysis,
+        model="gpt-4o"
+    )

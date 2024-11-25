@@ -2,6 +2,21 @@
 
 A social deception game where AI players try to identify the human among them while the human tries to blend in.
 
+## ✨ Latest Features
+
+- **AI-Driven Voting**: Each AI now analyzes the conversation using their unique personality and detection strategy
+- **Parallel Processing**: All AI votes are processed simultaneously for faster results
+- **Personality-Based Analysis**: AIs use their traits and quirks to inform their voting decisions
+- **Real-time Vote Display**: Watch as each AI's analysis comes in and updates the vote count
+- **Detailed Reasoning**: (Debug mode) See each AI's thought process for their vote
+- **Faster Replay**: Quicker intro sequence when replaying the game
+- **Improved Chat System**: AI responses now influenced by personality metrics:
+  - Chaos Level (1-10): Affects response randomness
+  - Enthusiasm Level (1-10): Influences energy in responses
+  - Evil Level (1-10): Determines mischievousness
+  - Weirdness Level (1-10): Controls quirky behavior
+  - Confidence Level (1-10): Affects assertiveness
+
 ## 🎮 Game Overview
 
 "Spot the Human" is an engaging social deception game that puts a twist on the classic "spot the bot" concept. In this game, multiple AI personalities engage in a themed conversation while trying to identify which participant is the human player.
@@ -18,12 +33,19 @@ A social deception game where AI players try to identify the human among them wh
   - Custom ASCII robot avatars
   - Themed game banners
   - Player cards with personality details
-- **Interactive Chat**: Turn-based conversation system with:
+- **Interactive Chat**: Continuous conversation system with:
   - Random starting player
   - Personality-driven AI responses
-  - Conversation history tracking
+  - Natural conversation flow
   - Visual turn indicators
   - Emoji reactions
+  - Exchange tracking
+- **Neural Network Voting**: End-game voting sequence with:
+  - Real-time vote processing
+  - AI-driven analysis of conversation
+  - Visual vote tracking
+  - Cyberpunk-style interface
+  - Parallel vote processing
 
 ## 🚀 Getting Started
 
@@ -67,19 +89,29 @@ python src/main.py
 1. **Setup**:
    - Choose the number of AI players (2-10)
    - Select a conversation theme
-   - Choose number of chat rounds (1-5)
+   - Set how many times each player should speak (1-5)
    - Enter your username
 
 2. **Generation Phase**:
-   - Watch the Matrix-style animation while AI personalities are created
-   - Each AI gets unique traits, strategies, and conversation styles
-   - Review each AI's personality card
+   - Watch as unique AI personalities are created
+   - Each AI gets:
+     - Random personality metrics
+     - Custom detection strategy
+     - Unique speaking style
+     - Conversation quirks
 
 3. **Chat Phase**:
-   - Random player starts the conversation
-   - Take turns discussing the chosen theme
-   - AI players respond based on their personalities
-   - Try to blend in or spot the human!
+   - Discuss the chosen theme in a continuous group chat
+   - Each player (including you) speaks a set number of times
+   - AI responses are influenced by their personality metrics
+   - Try to blend in with natural conversation flow!
+
+4. **Voting Phase**:
+   - Each AI runs a detailed conversation analysis
+   - Votes are processed in parallel
+   - Watch real-time vote counting
+   - See which AIs suspected you
+   - Option to play again with faster intro!
 
 ## 🤖 AI Personalities
 
