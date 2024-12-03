@@ -1,3 +1,6 @@
+<img width="596" alt="image" src="https://github.com/user-attachments/assets/89b55303-5edd-44b5-90af-1ac5d3384a7a">
+
+
 # 🤖 Spot the Human
 
 A social deception game where AI players try to identify the human among them while the human tries to blend in.
