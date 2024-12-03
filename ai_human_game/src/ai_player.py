@@ -197,6 +197,35 @@ async def generate_ai_personality(client, theme: str) -> AIPersonality:
             💪 CONFIDENCE: {metrics.confidence_level}/10
             {'(Very assertive and sure)' if metrics.confidence_level > 7 else '(Rather uncertain and hesitant)' if metrics.confidence_level < 4 else '(Moderately confident)'}
 
+            PERSONALITY CREATION GUIDELINES:
+            1. Give them a rich (fictional) background related to {theme}
+            2. Create strong opinions and experiences about the topic
+            3. Design quirky conversation habits that reveal personality
+            4. Include social behaviors (e.g., "always agrees sarcastically", "questions others' stories")
+            5. Add specific mannerisms (e.g., "uses old-timey expressions", "references conspiracy theories")
+
+            SOCIAL INTERACTION STYLE:
+            - How do they engage with others' stories?
+            - What kind of personal anecdotes do they share?
+            - How do they express doubt or agreement?
+            - What's their style of friendly banter?
+            - How do they subtly challenge others?
+
+            DETECTION STRATEGY SHOULD INCLUDE:
+            - Social cues they look for
+            - Conversation patterns they track
+            - Ways they test other players
+            - How they hide their own investigation
+
+            The personality should feel like someone you'd meet at a casual game night:
+            - Has strong opinions but can be playful
+            - Shares personal stories (real or made up)
+            - Engages in friendly banter
+            - Shows curiosity about others
+            - Maintains a hint of competitiveness
+
+            Make them feel like a character from a social deduction board game!
+
             GAME CONTEXT:
             - Multiple AI players chat with one hidden human about {theme}
             - Each AI must try to identify the human while avoiding detection
