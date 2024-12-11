@@ -1,4 +1,4 @@
-# 🎮 Spot the Human - Development TODO
+# 🎮 POOCS (Spot) the Human - Development TODO
 
 ## 🚀 Core Game Systems
 
