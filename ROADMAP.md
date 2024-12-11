@@ -13,19 +13,19 @@
 - [x] Configure WebSocket support
 - [x] Create new requirements.txt with web dependencies
 
-### 1.3 Frontend Setup
+### 1.3 Frontend Setup ✅
 - [x] Initialize React project with Vite
 - [x] Add TypeScript configuration (included with Vite template)
 - [x] Install and configure xterm.js
 - [x] Create basic terminal component
-- [ ] Set up frontend routing
+- [x] Set up frontend routing
 
-### 1.4 Development Environment
-- [ ] Configure ESLint for both Python and TypeScript
-- [ ] Set up Prettier for code formatting
-- [ ] Create development scripts
-- [ ] Configure VS Code settings (optional)
-- [ ] Set up pre-commit hooks
+### 1.4 Development Environment ✅
+- [x] Configure ESLint for both Python and TypeScript
+- [x] Set up Prettier for code formatting
+- [x] Create development scripts
+- [x] Configure VS Code settings (optional)
+- [x] Set up pre-commit hooks
 
 ### 1.5 Docker Configuration
 - [ ] Create backend Dockerfile
