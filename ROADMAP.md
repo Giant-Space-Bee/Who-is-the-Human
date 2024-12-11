@@ -27,12 +27,12 @@
 - [x] Configure VS Code settings (optional)
 - [x] Set up pre-commit hooks
 
-### 1.5 Docker Configuration
-- [ ] Create backend Dockerfile
-- [ ] Create frontend Dockerfile
-- [ ] Set up Docker Compose
-- [ ] Create development environment
-- [ ] Add basic health checks
+### 1.5 Docker Configuration ✅
+- [x] Create backend Dockerfile
+- [x] Create frontend Dockerfile
+- [x] Set up Docker Compose
+- [x] Create development environment
+- [x] Add basic health checks
 
 ## Phase 2: Core Game Migration 🔄
 - [ ] Port existing game logic to backend service
