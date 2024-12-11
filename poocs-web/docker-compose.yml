@@ -25,8 +25,8 @@ services:
     ports:
       - "3001:3000"  # Map to different port to avoid conflict
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend:/app:delegated
+      - frontend_node_modules:/app/node_modules
     environment:
       - VITE_BACKEND_URL=http://localhost:3000
     depends_on:
@@ -37,4 +37,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: unless-stopped 
+    restart: unless-stopped
+
+volumes:
+  frontend_node_modules:

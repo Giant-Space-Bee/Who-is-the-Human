@@ -18,7 +18,7 @@ repos:
     hooks:
       - id: eslint
         name: eslint
-        entry: bash -c 'cd poocs-web/frontend && npm run lint'
+        entry: bash -c 'cd poocs-web/frontend && npm run lint:fix'
         language: system
         types_or: [javascript, jsx, ts, tsx]
         pass_filenames: false 
