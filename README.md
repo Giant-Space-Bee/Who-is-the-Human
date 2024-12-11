@@ -1,164 +1,114 @@
 <img width="596" alt="image" src="https://github.com/user-attachments/assets/89b55303-5edd-44b5-90af-1ac5d3384a7a">
 
+# 🎮 POOCS: The Human - Web Edition
 
-# 🤖 Spot the Human
+Welcome to the next evolution of social deception! POOCS (originally "Find the Human") is a thrilling game where AI players with distinct personalities try to unmask the human among them. Now reimagined for the web, featuring real-time interaction and a beautiful terminal interface!
 
-A social deception game where AI players try to identify the human among them while the human tries to blend in.
+## 🌟 Game Overview
 
-## ✨ Latest Features
+Dive into a world where AI personalities engage in witty banter, strategic deception, and clever detective work. As the human player, your mission is to blend in with these quirky AI characters, each equipped with:
 
-- **AI-Driven Voting**: Each AI now analyzes the conversation using their unique personality and detection strategy
-- **Parallel Processing**: All AI votes are processed simultaneously for faster results
-- **Personality-Based Analysis**: AIs use their traits and quirks to inform their voting decisions
-- **Real-time Vote Display**: Watch as each AI's analysis comes in and updates the vote count
-- **Detailed Reasoning**: (Debug mode) See each AI's thought process for their vote
-- **Faster Replay**: Quicker intro sequence when replaying the game
-- **Improved Chat System**: AI responses now influenced by personality metrics:
-  - Chaos Level (1-10): Affects response randomness
-  - Enthusiasm Level (1-10): Influences energy in responses
-  - Evil Level (1-10): Determines mischievousness
-  - Weirdness Level (1-10): Controls quirky behavior
-  - Confidence Level (1-10): Affects assertiveness
+- 🤖 **Unique Personalities**: From chaotic jokesters to analytical masterminds
+- 🎭 **Detection Strategies**: Each AI has its own method of spotting human behavior
+- 💭 **Conversation Styles**: Watch as AIs adapt their language to match their personality
+- 🎲 **Dynamic Voting**: Real-time analysis of conversation patterns
+- ⚡ **WebSocket Magic**: Instant responses and seamless interaction
 
-## 🎮 Game Overview
+## 🚀 Project Structure
 
-"Spot the Human" is an engaging social deception game that puts a twist on the classic "spot the bot" concept. In this game, multiple AI personalities engage in a themed conversation while trying to identify which participant is the human player.
+```
+poocs-web/
+├── backend/           # FastAPI backend
+│   ├── src/          # Python source code
+│   │   ├── game/     # Core game logic
+│   │   └── ws/       # WebSocket handlers
+│   └── tests/        # Backend tests
+└── frontend/         # React frontend
+    ├── src/          # TypeScript source code
+    ├── components/   # React components
+    └── pages/        # Game interface pages
+```
 
-## ✨ Features
+## 🛠️ Tech Stack
 
-- **Dynamic AI Personalities**: Each AI player has unique traits, quirks, and strategies
-- **Custom Themes**: Choose any conversation topic for the game
-- **Async Generation**: AI profiles are generated in parallel with Matrix-style animation
-- **Visual Elements**:
-  - Matrix-style loading animations
-  - Colorful round banners
-  - AI thinking indicators
-  - Custom ASCII robot avatars
-  - Themed game banners
-  - Player cards with personality details
-- **Interactive Chat**: Continuous conversation system with:
-  - Random starting player
-  - Personality-driven AI responses
-  - Natural conversation flow
-  - Visual turn indicators
-  - Emoji reactions
-  - Exchange tracking
-- **Neural Network Voting**: End-game voting sequence with:
-  - Real-time vote processing
-  - AI-driven analysis of conversation
-  - Visual vote tracking
-  - Cyberpunk-style interface
-  - Parallel vote processing
+### Backend Magic
+- 🚄 **FastAPI**: Lightning-fast Python web framework
+- 🔌 **WebSockets**: Real-time bidirectional communication
+- 🧠 **OpenAI GPT-4**: Powers our witty AI personalities
+- 🐳 **Docker**: Containerized for easy deployment
 
-## 🚀 Getting Started
+### Frontend Delight
+- ⚛️ **React + TypeScript**: Rock-solid web interface
+- 📟 **xterm.js**: Beautiful terminal emulation
+- ⚡ **Vite**: Lightning-fast build tooling
+- 🎨 **Modern UI**: Sleek, responsive design
+
+## 🎯 Features
+
+- **Real-time Chat**: Engage in natural conversations with AI players
+- **Terminal Interface**: Classic ASCII charm meets modern web tech
+- **Personality Engine**: Each AI has unique traits that influence their behavior:
+  - Chaos Level: Affects response unpredictability
+  - Intelligence: Influences detection accuracy
+  - Humor: Determines wit and joke frequency
+  - Suspicion: Affects voting behavior
+- **Dynamic Voting**: Watch as AIs analyze and cast their votes in real-time
+- **Game History**: Track your success rate at fooling the AIs
+
+## 🏃‍♂️ Getting Started
 
 ### Prerequisites
+- 🐳 Docker and Docker Compose
+- 📦 Node.js 20+ (for local development)
+- 🐍 Python 3.12+ (for local development)
+- 🔑 OpenAI API key
 
-- Python 3.8+
-- OpenAI API key
+### Quick Start
 
-### Installation
-
-1. Clone the repository:
+1. Clone your way to fun:
 ```bash
-git clone https://github.com/yourusername/ai_human_game.git
-cd ai_human_game
+git clone https://github.com/yourusername/poocs-web.git
+cd poocs-web
 ```
 
-2. Create and activate a virtual environment:
+2. Launch the experience:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+docker compose up
 ```
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+3. Jump in:
+- 🎮 Game Interface: http://localhost:3001
+- 🎛️ API: http://localhost:3000
+- 📚 API Docs: http://localhost:3000/docs
 
-4. Set up your OpenAI API key:
-```bash
-export OPENAI_API_KEY='your-api-key-here'  # On Windows: set OPENAI_API_KEY=your-api-key-here
-```
+## 🎲 How to Play
 
-### Running the Game
+1. **Enter the Arena**: Join a game room and meet your AI companions
+2. **Blend In**: Participate in themed conversations while maintaining your cover
+3. **Stay Sharp**: Watch for AI behavioral patterns and adapt your strategy
+4. **Face Judgment**: Experience the tension as AIs cast their votes
+5. **Victory or Learning**: Celebrate fooling the AIs or learn from their detection
 
-```bash
-python src/main.py
-```
+## 📝 Original Game
 
-## 🎯 How to Play
-
-1. **Setup**:
-   - Choose the number of AI players (2-10)
-   - Select a conversation theme
-   - Set how many times each player should speak (1-5)
-   - Enter your username
-
-2. **Generation Phase**:
-   - Watch as unique AI personalities are created
-   - Each AI gets:
-     - Random personality metrics
-     - Custom detection strategy
-     - Unique speaking style
-     - Conversation quirks
-
-3. **Chat Phase**:
-   - Discuss the chosen theme in a continuous group chat
-   - Each player (including you) speaks a set number of times
-   - AI responses are influenced by their personality metrics
-   - Try to blend in with natural conversation flow!
-
-4. **Voting Phase**:
-   - Each AI runs a detailed conversation analysis
-   - Votes are processed in parallel
-   - Watch real-time vote counting
-   - See which AIs suspected you
-   - Option to play again with faster intro!
-
-## 🤖 AI Personalities
-
-Each AI player features:
-- Unique personality traits
-- Custom speaking style
-- Specific strategies for human detection
-- Deception tactics
-- Conversation quirks
-- Favorite topics
-- Things they avoid
-
-## 🎨 Visual Design
-
-The game features:
-- Matrix-style banner
-- Typewriter text effects
-- Custom ASCII robot avatars
-- Formatted player cards
-- Color-coded elements
-
-## 🛠️ Technical Details
-
-- Built with Python 3.8+
-- Uses OpenAI's GPT-4 for AI personality generation
-- Implements async/await for concurrent operations
-- Utilizes custom ASCII art for visual elements
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+Love terminal-based gaming? Check out the original version in the [poocs_game](./poocs_game) directory!
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Got ideas? We'd love to hear them! Feel free to:
+- 🐛 Report bugs
+- 💡 Suggest features
+- 🔧 Submit pull requests
+- 🎨 Improve the UI/UX
 
-## 🙏 Acknowledgments
+## 📄 License
 
-- OpenAI for the GPT-4 API
-- The Python community for async support
-- ASCII art community for inspiration
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 📬 Contact
+## 🌟 Coming Soon
 
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter)
-
-Project Link: [https://github.com/yourusername/ai_human_game](https://github.com/yourusername/ai_human_game)
+- 🏆 Global Leaderboards
+- 👥 Multiple Human Players
+- 🎭 Custom AI Personality Creation
+- 🎨 Theme Customization
+- 🤖 AI Personality Marketplace
